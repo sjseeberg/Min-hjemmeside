@@ -1,1 +1,631 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MVDR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --white:#ffffff;--black:#000000;--grey:#777777;--rule:#e2dfdb;
+      --serif:'EB Garamond',Georgia,serif;
+      --sans:'Helvetica Neue',Helvetica,Arial,sans-serif;
+    }
+    html,body{width:100%;height:100%;overflow:hidden;font-family:var(--sans);background:#111;cursor:none}
 
+    /* CURSOR */
+    #cur{position:fixed;z-index:9999;width:7px;height:7px;border-radius:50%;background:var(--black);pointer-events:none;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .15s,border-color .15s;top:0;left:0}
+    #cur.on-hero{background:var(--white)}
+    #cur.expand{width:32px;height:32px;background:transparent;border:1px solid var(--black)}
+    #cur.on-hero.expand{border-color:var(--white)}
+
+    /* HERO */
+    .hero{position:fixed;inset:0;width:100vw;height:100vh}
+    .hero-slide{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.8s ease}
+    .hero-slide.active{opacity:1}
+    .hero-slide img{width:100%;height:100%;object-fit:cover;filter:brightness(.60);display:block}
+
+    /* LOGO + NAV */
+    .logo{position:fixed;top:0;left:0;z-index:100;padding:2.2rem 2.8rem}
+    .logo a{font-family:var(--sans);font-size:.68rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--white);text-decoration:none;transition:opacity .3s}
+    .logo a:hover{opacity:.5}
+    nav{position:fixed;top:0;right:0;z-index:100;display:flex;gap:2.8rem;padding:2.2rem 2.8rem}
+    nav a{font-family:var(--sans);font-size:.68rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--white);text-decoration:none;transition:opacity .3s}
+    nav a:hover{opacity:.5}
+
+    /* DOTS */
+    .dots{position:fixed;bottom:2.2rem;right:2.8rem;z-index:100;display:flex;gap:.6rem;align-items:center}
+    .dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer;transition:background .3s,transform .3s}
+    .dot.active{background:var(--white);transform:scale(1.3)}
+
+    /* QUOTE */
+    .quote{position:fixed;bottom:9vh;left:2.8rem;max-width:560px;z-index:100}
+    .quote p{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(1.4rem,2.5vw,2.3rem);color:var(--white);line-height:1.35;opacity:0;transform:translateY(16px);animation:up 1.4s ease .6s forwards}
+    @keyframes up{to{opacity:1;transform:none}}
+
+    /* OVERLAY */
+    .overlay{position:fixed;inset:0;z-index:200;background:var(--white);overflow-y:auto;display:none;opacity:0;transition:opacity .4s ease}
+    .overlay.open{display:block}
+    .overlay.visible{opacity:1}
+    .close-btn{position:fixed;top:0;right:0;z-index:300;padding:2.2rem 2.8rem;font-family:var(--sans);font-size:.68rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--black);cursor:pointer;transition:color .3s,opacity .3s;background:none;border:none}
+    .close-btn:hover{opacity:.45}
+    .overlay-logo.white{color:var(--white)}
+    .close-btn.white{color:var(--white)}
+    .overlay-logo{position:fixed;top:0;left:0;z-index:300;padding:2.2rem 2.8rem;font-family:var(--sans);font-size:.68rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--black);text-decoration:none;cursor:pointer;transition:color .3s}
+
+    /* PROJEKTER */
+    #pg-projects{display:block;min-height:100vh;padding:7.5rem 2.8rem 6rem}
+    .pg-header{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);margin-bottom:3.5rem}
+    .pg-grid{
+      columns:3;
+      column-gap:8px;
+    }
+    .pg-item{
+      break-inside:avoid;
+      margin-bottom:8px;
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+    }
+    .pg-img-wrap{
+      width:100%;overflow:hidden;position:relative;
+    }
+    .pg-img-wrap img{
+      width:100%;height:auto;display:block;
+      filter:grayscale(15%) brightness(.7);
+      opacity:.5;
+      transition:opacity .35s ease, filter .35s ease, transform .5s ease;
+    }
+    .pg-title{
+      position:absolute;
+      bottom:0;left:0;right:0;
+      padding:.9rem 1rem;
+      font-family:var(--sans);font-size:.75rem;font-weight:300;
+      letter-spacing:.06em;
+      color:rgba(255,255,255,0);
+      transition:color .3s;
+      background:linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%);
+      opacity:0;
+      transition:opacity .3s ease;
+    }
+    .pg-item:hover .pg-img-wrap img{
+      opacity:1;
+      filter:grayscale(0%) brightness(1);
+      transform:scale(1.03);
+    }
+    .pg-item:hover .pg-title{
+      opacity:1;
+      color:rgba(255,255,255,0.9);
+    }
+    .pl-col{display:none}
+    .pp-col{display:none}
+    .pl-hover-img{display:none!important}
+
+    @media(max-width:768px){
+      #pg-projects{padding:7rem 1.5rem 5rem}
+      .pg-grid{columns:2;column-gap:6px}
+      .pg-item{margin-bottom:6px}
+    }
+    @media(max-width:480px){
+      .pg-grid{columns:1}
+    }
+
+    /* DETALJE */  
+    #pg-detail{min-height:100vh}
+    .back{display:inline-block;padding:2rem 2.8rem 0;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);cursor:pointer;transition:color .2s}
+    .back:hover{color:var(--black)}
+    .detail-hero{width:100%;height:85vh;overflow:hidden}
+    .detail-hero img{width:100%;height:100%;object-fit:cover}
+    .detail-gallery{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:2px}
+    .detail-gallery img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+    .detail-gallery .wide{grid-column:span 2}
+    .detail-gallery .wide img{aspect-ratio:16/7}
+    .detail-body{max-width:1120px;margin:0 auto;padding:5rem 2.8rem 8rem;display:grid;grid-template-columns:1fr 1fr;gap:6rem}
+    .detail-body h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(1.7rem,2.8vw,3rem);line-height:1.18;margin-bottom:1.8rem}
+    .detail-body p{font-size:.87rem;line-height:1.92;color:#333;max-width:460px}
+    .facts h3{font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);margin-bottom:1.4rem}
+    .fact{display:grid;grid-template-columns:110px 1fr;padding:.78rem 0;border-top:1px solid var(--rule);font-size:.83rem}
+    .fact:last-child{border-bottom:1px solid var(--rule)}
+    .fk{color:var(--grey)}
+
+    /* TEGNESTUEN */
+    #pg-studio{min-height:100vh;background:var(--white)}
+
+    /* Hero — smalere */
+    .studio-hero{width:100%;overflow:hidden;max-height:40vh}
+    .studio-hero img{width:100%;height:40vh;object-fit:cover;object-position:center;display:block;filter:grayscale(10%) brightness(1.05)}
+
+    /* Hele indholdet centreret */
+    .studio-body-wrap{
+      max-width:620px;
+      margin:0 auto;
+      padding:3.5rem 2.8rem 6rem;
+    }
+
+    /* Profil tekst */
+    .studio-text strong{color:var(--black);font-weight:500}
+    .studio-text p{
+      font-size:.92rem;line-height:1.95;
+      color:#888;margin-bottom:1.5rem;
+    }
+    .studio-text p:last-child{margin-bottom:0}
+
+    /* Expand-sektioner (dogmer + filosofi) */
+    .studio-expand{margin-top:3rem}
+    .studio-expand-item{border-top:none;margin-bottom:0}
+    .studio-expand-trigger{
+      font-family:var(--sans);font-size:clamp(1.1rem,2vw,1.6rem);
+      font-weight:300;color:#aaa;
+      cursor:pointer;padding:.5rem 0;
+      display:inline-block;
+      border-bottom:1px solid transparent;
+      transition:color .2s,border-color .2s;
+      user-select:none;
+    }
+    .studio-expand-trigger:hover{color:var(--black);border-bottom:1px solid var(--black)}
+    .studio-expand-trigger.open{color:var(--black)}
+    .studio-expand-content{
+      display:none;padding:1.5rem 0 1rem;
+    }
+    .studio-expand-content.open{display:block}
+
+    /* Dogmer */
+    .studio-dogmer{display:flex;flex-direction:column}
+    .dogme{display:grid;grid-template-columns:2rem 1fr;gap:1.5rem;padding:.9rem 0;align-items:start}
+    .dogme-num{font-family:var(--serif);font-style:italic;font-size:1rem;color:#ccc;line-height:1.8}
+    .dogme p{font-size:.88rem;line-height:1.85;color:#888;margin:0}
+
+    /* Kontakt */
+
+    /* Portræt */
+    .studio-portrait-section{padding:0 0 2rem}
+    .studio-portrait-section img{
+      width:100%;height:auto;display:block;
+      filter:grayscale(30%) brightness(.9);
+      transition:filter .4s ease;
+      cursor:default;
+    }
+    .studio-portrait-section img:hover{
+      filter:grayscale(0%) brightness(1);
+    }
+    .studio-filosofi-img{
+      width:100%;max-width:480px;
+      margin:0 0 2rem 0;
+      display:block;
+    }
+    .studio-filosofi-img img{
+      width:100%;height:auto;display:block;
+      opacity:.75;
+      transition:opacity .3s;
+    }
+    .studio-filosofi-img img:hover{opacity:1}
+    .studio-contact-wrap{margin-top:3rem;padding-top:2.5rem;border-top:1px solid var(--rule)}
+    .studio-contact-title{
+      font-size:.65rem;letter-spacing:.13em;text-transform:uppercase;
+      color:var(--black);margin-bottom:2rem;
+    }
+    .studio-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem}
+    .scc-name{font-size:.92rem;font-weight:400;color:var(--black);margin-bottom:.3rem}
+    .scc-title{font-size:.8rem;color:#aaa;line-height:1.6;margin-bottom:1rem}
+    .scc-detail{font-size:.85rem;line-height:1.8;color:#888}
+    .scc-detail a{color:#888;text-decoration:none}
+    .scc-detail a:hover{color:var(--black)}
+    footer{border-top:none;padding:1.8rem 2.8rem;display:flex;justify-content:space-between;font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:#ccc}
+
+    @media(max-width:768px){
+      .studio-body-wrap{padding:2.5rem 1.5rem 5rem}
+      .studio-contact-grid{grid-template-columns:1fr;gap:2rem}
+      .studio-hero{max-height:30vh}
+      .studio-hero img{height:30vh}
+    }
+
+    /* JOURNAL */
+    #pg-journal{min-height:100vh;padding:7.5rem 2.8rem 6rem}
+    #pg-journal h2{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);margin-bottom:3rem}
+    .journal-grid{columns:3;column-gap:8px}
+    .journal-grid img{width:100%;display:block;margin-bottom:8px;break-inside:avoid;transition:opacity .3s}
+    .journal-grid img:hover{opacity:.88}
+    .journal-drop{border:1px dashed var(--rule);padding:3rem 2rem;text-align:center;margin-bottom:3rem;transition:border-color .3s,background .3s;cursor:pointer}
+    .journal-drop.dragover{border-color:var(--black);background:#f8f7f5}
+    .journal-drop p{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--grey)}
+
+    /* FOOTER */
+    footer{border-top:1px solid var(--rule);padding:1.8rem 2.8rem;display:flex;justify-content:space-between;font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--grey)}
+
+    /* FADE */
+    .fi{opacity:0;transform:translateY(18px);transition:opacity .75s ease,transform .75s ease}
+    .fi.vis{opacity:1;transform:none}
+
+    @media(max-width:768px){
+      body{cursor:auto}
+      #cur{display:none}
+      #pg-projects{grid-template-columns:1fr}
+      .pp-col{display:none}
+      .pl-col{padding:7rem 1.5rem 4rem}
+      .detail-body{grid-template-columns:1fr;gap:3rem;padding:3rem 1.5rem 5rem}
+      .detail-gallery{grid-template-columns:1fr}
+      .detail-gallery .wide{grid-column:span 1}
+      .studio-section-inner{grid-template-columns:1fr;gap:2rem;padding:3.5rem 1.5rem}
+      .studio-anchors{padding:1.5rem;gap:1.5rem;flex-wrap:wrap}
+      .studio-contact-grid{grid-template-columns:1fr;gap:2.5rem}
+      .journal-grid{columns:2}
+      #pg-journal{padding:7rem 1.5rem 5rem}
+      .quote{left:1.5rem;max-width:90vw;bottom:7vh}
+      .logo,nav{padding:1.5rem}
+      nav{gap:2rem}
+      .dots{right:1.5rem}
+    }
+  </style>
+</head>
+<body>
+
+<div id="cur"></div>
+
+<div class="hero" id="hero"></div>
+<div class="dots" id="dots"></div>
+
+<div class="logo"><a href="#" onclick="closeOverlay();return false;">MVDR</a></div>
+<nav>
+  <a href="#" onclick="openPage('projects');return false;">Projekter</a>
+  <a href="#" onclick="openPage('studio');return false;">Tegnestuen</a>
+</nav>
+
+<div class="quote">
+  <p>Værdi bør ikke kun forstås som noget økonomisk eller teknisk,<br>men også som noget kulturelt, materielt og stedsspecifikt.</p>
+</div>
+
+<div class="overlay" id="overlay">
+  <a class="overlay-logo" onclick="closeOverlay()">MVDR</a>
+  <button class="close-btn" onclick="closeOverlay()">Luk ×</button>
+
+  <!-- PROJEKTER -->
+  <div id="pg-projects" style="display:none;">
+    <div class="pg-header">Projekter</div>
+    <div class="pg-grid">
+        <div class="pg-item" onclick="openProj(0)">
+          <div class="pg-img-wrap">
+            <img src="Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_3450.jpg" alt="Marielundhus — Kolding"/>
+          </div>
+          <div class="pg-title">Marielundhus — Kolding</div>
+        </div>
+        <div class="pg-item" onclick="openProj(1)">
+          <div class="pg-img-wrap">
+            <img src="Billeder/02%20Skovr%C3%B8d%20hus/Sk%C3%A6rmbillede%202026-05-19%20102447.png" alt="Skovrød Hus — Birkerød"/>
+          </div>
+          <div class="pg-title">Skovrød Hus — Birkerød</div>
+        </div>
+        <div class="pg-item" onclick="openProj(2)">
+          <div class="pg-img-wrap">
+            <img src="Billeder/03%20Varbjerg%20Strand/Skala%20billede%20rendering.png" alt="Varbjerg Strand — Sommerhus"/>
+          </div>
+          <div class="pg-title">Varbjerg Strand — Sommerhus</div>
+        </div>
+        <div class="pg-item" onclick="openProj(3)">
+          <div class="pg-img-wrap">
+            <img src="Billeder/04%20B%C3%A5dehavnsgade%2C%20Sydhavnen%20K%C3%B8benhavn/NK-TOAST-HOUSE1.jpg" alt="Bådehavnsgade — Sydhavnen, København"/>
+          </div>
+          <div class="pg-title">Bådehavnsgade — Sydhavnen, København</div>
+        </div>
+        <div class="pg-item" onclick="openProj(4)">
+          <div class="pg-img-wrap">
+            <img src="Billeder/05%20Egevej%2C%20Middelfart/Gemini_Generated_Image_afc6zafc6zafc6za.png" alt="Egevej — Middelfart"/>
+          </div>
+          <div class="pg-title">Egevej — Middelfart</div>
+        </div>
+        <div class="pg-item" onclick="openProj(5)">
+          <div class="pg-img-wrap">
+            <img src="Billeder/06%20Midjysk%20b%C3%B8rnehave/Billede%20hovedindgang%20b%C3%B8rnehave%20vestkysten.png" alt="Midjysk Børnehave"/>
+          </div>
+          <div class="pg-title">Midjysk Børnehave</div>
+        </div>
+        <div class="pg-item" onclick="openProj(6)">
+          <div class="pg-img-wrap">
+            <img src="Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Danmarks-Laererforening_spejling-i-indre-gaard.jpg" alt="Danmarks Lærerforening — Vandkunsten"/>
+          </div>
+          <div class="pg-title">Danmarks Lærerforening — Vandkunsten</div>
+        </div>
+        <div class="pg-item" onclick="openProj(7)">
+          <div class="pg-img-wrap">
+            <img src="Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/2022-07-21%2015.32.22.jpg" alt="Kirkehøjgård — Horne"/>
+          </div>
+          <div class="pg-title">Kirkehøjgård — Horne</div>
+        </div>
+    </div>
+  </div>
+
+  <!-- DETALJE -->
+  <div id="pg-detail" style="display:none;">
+    <span class="back" onclick="showInner('projects')">← Alle projekter</span>
+    <div class="detail-hero"><img id="dhero" src="" alt=""/></div>
+    <div class="detail-gallery" id="dgallery"></div>
+    <div class="detail-body">
+      <div class="fi"><h1 id="dtitle"></h1><p id="ddesc"></p></div>
+      <div class="facts fi"><h3>Fakta</h3><div id="dfacts"></div></div>
+    </div>
+  </div>
+
+  <!-- TEGNESTUEN -->
+  <div id="pg-studio" style="display:none;">
+
+    <div class="studio-hero" id="studioHero">
+      <img id="studioHeroImg" src="Billeder/Logo/Kopi%202.jpg" alt="" style="width:100%;height:40vh;object-fit:cover;object-position:center;display:block;filter:grayscale(10%) brightness(1.05);transition:opacity 0.8s ease">
+    </div>
+    <!-- PROFIL -->
+      <div class="studio-title fi">Tegnestuen</div>
+      <div class="studio-text fi">
+        <p>MVDR rådgiver bygherrer og arkitektvirksomheder med udgangspunkt i en tektonisk og økologisk forståelse af arkitektur, hvor form, materialer, funktion og ansvar tænkes som en samlet helhed.</p>
+        <p>Tektonikken forstås både som en materialelogik og som en måde at træffe arkitektoniske beslutninger på. Det handler om, hvordan konstruktion, materialer og detaljering skaber sammenhæng mellem holdbarhed, brugbarhed og skønhed, og dermed tilsammen danner bygværkets æstetik og aflæselighed.</p>
+        <p>Vi arbejder med en situeret tilgang, hvor eksisterende bygninger, kulturarv, materialer og lokale forhold ses som aktive ressourcer frem for begrænsninger. Her forstås transformation, bevaring og ny anvendelse som en naturlig del af arkitekturens livscyklus. Målet er at udvikle løsninger, der både er forankret i stedet og kan tilpasses fremtidige behov.</p>
+        <p>Vores tilgang bygger samtidig på en værdisætning, hvor værdi ikke alene forstås økonomisk eller teknisk, men også kulturelt, materielt og relationelt. Bygninger betragtes som en del af større sammenhænge mellem mennesker, materialer og omgivelser, og bæredygtighed handler derfor ikke kun om at reducere ressourceforbrug, men om at skabe langtidsholdbare forbindelser mellem det byggede, det sociale og det landskabelige.</p>
+        <p>Med afsæt i vernakulær arkitektur arbejder vi for en praksis, hvor arkitektur udvikles med respekt for stedets klima, kultur og byggeskik. Det betyder en rådgivning, der søger at forene det tekniske og det kulturelle.</p>
+      </div>
+
+      <!-- EXPAND: DOGMER + FILOSOFI -->
+      <div class="studio-expand fi">
+
+        <div class="studio-expand-item">
+          <div class="studio-expand-trigger" onclick="toggleExpand(this)">Dogmer</div>
+          <div class="studio-expand-content">
+            <div class="studio-dogmer">
+              <div class="dogme"><span class="dogme-num">1</span><p>LCA-beregninger er ikke universelle. Metoder og antagelser varierer, og resultater skal forstås i deres kontekst og ikke sammenlignes ukritisk.</p></div>
+              <div class="dogme"><span class="dogme-num">2</span><p>Valget af energikilde har stor betydning for bygningers samlede CO₂-aftryk og er ofte et af de mest effektive steder at reducere udledninger.</p></div>
+              <div class="dogme"><span class="dogme-num">3</span><p>CO₂-reduktion kræver en helhedsorienteret tilgang, hvor energi, materialer og konstruktion ses i sammenhæng frem for isolerede optimeringer.</p></div>
+              <div class="dogme"><span class="dogme-num">4</span><p>Materialevalg er afgørende. Biobaserede materialer og enkle konstruktive principper rummer et stort potentiale for markante reduktioner.</p></div>
+              <div class="dogme"><span class="dogme-num">5</span><p>Vedligehold og reparation bør prioriteres frem for udskiftning, da det reducerer klimaaftryk og understøtter eksisterende arkitektoniske værdier.</p></div>
+              <div class="dogme"><span class="dogme-num">6</span><p>Nedrivning har et betydeligt klimaaftryk og bør kun anvendes, når det er nødvendigt og velbegrundet.</p></div>
+              <div class="dogme"><span class="dogme-num">7</span><p>Bevaring og klimahensyn er ikke modsætninger, men kan i mange tilfælde understøtte hinanden og skabe mere robuste løsninger.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="studio-expand-item">
+          <div class="studio-expand-trigger" onclick="toggleExpand(this)">Filosofi</div>
+          <div class="studio-expand-content">
+            <div class="studio-filosofi-img">
+              <img src="Billeder/Logo/tegnestuen%2001.jpg" alt="Tektonisk stil"/>
+            </div>
+            <div class="studio-text">
+              <p>Der er i de senere år sket et tydeligt skifte i måden, vi taler om byggeri, bevaring og ressourceforbrug på. Hvor nybyggeri tidligere ofte blev set som det naturlige udgangspunkt, handler diskussionen i dag i stigende grad om, hvorvidt vi overhovedet skal bygge nyt, eller om vi i højere grad skal arbejde med det, der allerede findes. Flere forskere peger på, at langt størstedelen af fremtidens arkitektopgaver vil bestå i transformation og omdannelse af eksisterende bygninger, og nogle argumenterer endda for, at vi allerede har opført det, der er behov for.</p>
+              <p>Samtidig er klimadagsordenen blevet en central ramme for både arkitektur og kulturarv. Det betyder, at spørgsmål om bevaring ikke længere kun handler om historie og æstetik, men også om klimaaftryk, materialeforbrug og ressourceansvar. Livscyklusvurderinger (LCA) og andre målemetoder spiller en stadig større rolle, men de rejser også nye spørgsmål: Hvordan vurderer vi værdien af det eksisterende byggeri, og hvordan afvejer vi kulturelle værdier mod klimamæssige hensyn?</p>
+              <p>Bygningskultur er i sig selv ikke statisk. Den er konstant under forandring, og bygninger ændrer sig allerede i det øjeblik, de bliver taget i brug. Det betyder, at bevaring og transformation ikke kan forstås som modsætninger, men som en del af den samme kontinuerlige proces. I den sammenhæng opstår der behov for nye måder at træffe beslutninger på, hvor både klima, kultur og brugsværdi indgår som ligeværdige hensyn.</p>
+              <p>Vi arbejder med dette gennem noget vi kalder en økologisk værdisætning, hvor værdi ikke kun forstås som noget økonomisk eller teknisk, men også som noget kulturelt, materielt og stedsspecifikt. Her ses bygninger ikke som isolerede objekter, men som en del af større sammenhænge mellem materialer, mennesker og omgivelser. Det betyder, at værdien af en bygning ikke kun ligger i dens fysiske form, men også i de relationer og den kontekst, den indgår i.</p>
+              <p>Inden for kulturarv peges der på, at værdier altid er afhængige af kontekst og fortolkning, og at det, der opfattes som værdifuldt, ændrer sig over tid. Inden for arkitekturteori understreges det samtidig, at arkitektur ikke kun er form og teknik, men også et etisk spørgsmål om, hvordan vi forholder os til verden gennem det byggede miljø. Her bliver materialer, konstruktion og detaljering ikke blot tekniske valg, men udtryk for værdier og holdninger.</p>
+              <p>Samtidig viser nyere tænkning, at skellet mellem natur og kultur ikke er så klart, som det tidligere har været antaget. Det byggede miljø må forstås som et samspil mellem mennesker, materialer og systemer, hvor alt indgår i samme kredsløb. Det betyder, at bæredygtighed ikke kun handler om at reducere forbrug, men også om at forstå de sammenhænge, vi bygger ind i verden.</p>
+              <p>I dette perspektiv bliver historiske byggeskikke og tidligere måder at bygge på ikke blot noget, der hører fortiden til, men en kilde til viden om, hvordan arkitektur kan være mere ressourcebevidst og tilpasset sin kontekst. Her var genbrug, lokal tilpasning og materialebevidsthed ofte en integreret del af praksis, ikke som strategi, men som nødvendighed.</p>
+              <p>Denne måde at tilgå hverdagsarkitektur på kan beskrives gennem to begreber og anskuelser:</p>
+              <p><strong>1. Oikos</strong>, oversat fra græsk som "at holde hus". Begrebet danner også grundlag for forstavelsen "øko", som indgår i ord som økologi og økonomi. Økologi kan forstås som "læren om husholdning", mens økonomi er sammensat af oikos og nomos, der betyder "styring" eller "forvaltning" af husholdning.</p>
+              <p><strong>2. Vernakulær</strong>, som kan oversættes til "hjemmehørende". Inden for arkitektur forstås det som arkitektoniske tiltag, der først og fremmest opstår ud fra funktionelle behov — eksempelvis tilpasning til lokale klimatiske og vejrmæssige forhold — men som samtidig bliver karakterskabende og en æstetisk del af bygværket. På den måde opstår en stedbundet og egnsspecifik arkitektur.</p>
+              <p>Samlet peger dette på behovet for at udvikle en mere sammenhængende forståelse af arkitektur, hvor klima, kultur og materialer ikke behandles hver for sig, men som dele af samme helhed. En tilgang, hvor værdi ikke opfattes som noget fast, men som noget, der opstår i relationer, sammenhænge og systemer.</p>
+              <p>Tegnestuens filosofi kan derfor opsummeres i fire tilgange til arkitektonisk rådgivning: Tektonik, økologisk værdisætning, Oikos og vernakulær arkitektur.</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /studio-expand -->
+
+      <!-- PORTRÆT -->
+      <div class="studio-portrait-section fi">
+        <img src="Billeder/Logo/DSC_2721.JPG" alt="Søren Jeppe Seeberg"/>
+      </div>
+
+      <!-- KONTAKT -->
+      <div class="studio-contact-wrap fi" id="s-kontakt">
+        <div class="studio-contact-title">Kontakt</div>
+        <div class="studio-contact-grid">
+          <div class="scc">
+            <div class="scc-name">Søren Jeppe Seeberg</div>
+            <div class="scc-title">Bygningskonstruktør MAK<br>Master i Bæredygtig Bygningskulturarv</div>
+            <div class="scc-detail"><a href="tel:+4527521117">+45 27 52 11 17</a></div>
+            <div class="scc-detail"><a href="mailto:sj@mvdr.dk">sj@mvdr.dk</a></div>
+            <div class="scc-detail"><a href="https://www.instagram.com/mvdr.dk/" target="_blank">Instagram ↗</a></div>
+          </div>
+          <div class="scc">
+            <div class="scc-name">MVDR</div>
+            <div class="scc-title">Mont Vænge Design Rådgivning</div>
+            <div class="scc-detail">Egevej 5, 5500 Middelfart</div>
+            <div class="scc-detail">CVR nr. 40 46 49 48</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /studio-body-wrap -->
+
+    <footer><span>MVDR — Mont Vænge Design Rådgivning</span><span>© 2025</span></footer>
+  </div>
+
+  
+
+  <div class="pl-hover-img" id="pl-hover-img">
+    <img id="pl-hover-img-el" src="" alt=""/>
+  </div>
+</div><!-- /overlay -->
+
+<script>
+// Cursor
+const cur = document.getElementById('cur');
+cur.classList.add('on-hero');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+document.querySelectorAll('a,li,button,.back,.dot').forEach(el => {
+  el.addEventListener('mouseenter', () => cur.classList.add('expand'));
+  el.addEventListener('mouseleave', () => cur.classList.remove('expand'));
+});
+
+// Slideshow
+const heroImgs = [
+  "Billeder/Forsiden/P_20221116_135011Straight.jpg",
+  "Billeder/Forsiden/IMG_7227.jpeg",
+  "Billeder/Forsiden/IMG_3450-EDIT_4K_upscaled.jpg",
+  "Billeder/Forsiden/Danmarks-Laererforening_spejling-i-indre-gaard.jpg",
+  "Billeder/Forsiden/51734072_1279258388882107_1843008996865212416_n.jpg",
+];
+let current = 0, timer;
+const heroEl = document.getElementById('hero');
+const dotsEl = document.getElementById('dots');
+heroImgs.forEach((src, i) => {
+  const slide = document.createElement('div');
+  slide.className = 'hero-slide' + (i===0?' active':'');
+  const img = document.createElement('img');
+  img.src = src; img.alt='';
+  slide.appendChild(img);
+  heroEl.appendChild(slide);
+  const dot = document.createElement('div');
+  dot.className = 'dot'+(i===0?' active':'');
+  dot.onclick = () => goTo(i);
+  dotsEl.appendChild(dot);
+});
+function goTo(n) {
+  const slides = heroEl.querySelectorAll('.hero-slide');
+  const dots   = dotsEl.querySelectorAll('.dot');
+  slides[current].classList.remove('active'); dots[current].classList.remove('active');
+  current = n;
+  slides[current].classList.add('active'); dots[current].classList.add('active');
+}
+timer = setInterval(() => goTo((current+1)%heroImgs.length), 6000);
+
+// Overlay
+const overlay = document.getElementById('overlay');
+function openPage(id) {
+  overlay.classList.add('open');
+  requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('visible')));
+  cur.classList.remove('on-hero');
+  showInner(id);
+  clearInterval(timer);
+}
+function closeOverlay() {
+  overlay.classList.remove('visible');
+  cur.classList.add('on-hero');
+  setTimeout(() => {
+    overlay.classList.remove('open');
+    ['projects','detail','studio'].forEach(id => {
+      document.getElementById('pg-'+id).style.display = 'none';
+    });
+  }, 400);
+  timer = setInterval(() => goTo((current+1)%heroImgs.length), 6000);
+}
+function showInner(id) {
+  const oLogo = document.querySelector('.overlay-logo');
+  const cBtn  = document.querySelector('.close-btn');
+  if (id === 'studio') {
+    oLogo.classList.add('white');
+    cBtn.classList.add('white');
+  } else {
+    oLogo.classList.remove('white');
+    cBtn.classList.remove('white');
+  }
+  ['projects','detail','studio'].forEach(p => {
+    document.getElementById('pg-'+p).style.display = 'none';
+  });
+  const el = document.getElementById('pg-'+id);
+  el.style.display = 'block';
+  overlay.scrollTop = 0;
+  setTimeout(() => el.querySelectorAll('.fi').forEach(e => e.classList.add('vis')), 80);
+  if (id==='studio') initStudio();
+}
+
+// Project hover — billede midt på skærmen
+const hoverBox = document.getElementById('pl-hover-img');
+const hoverImg = document.getElementById('pl-hover-img-el');
+document.querySelectorAll('#plist li').forEach(li => {
+  li.addEventListener('mouseenter', () => {
+    hoverImg.src = li.dataset.img;
+    hoverBox.classList.add('show');
+  });
+  li.addEventListener('mouseleave', () => {
+    hoverBox.classList.remove('show');
+  });
+  li.addEventListener('click', () => openProj(parseInt(li.dataset.i)));
+});
+
+// Project data (placeholder beskrivelser — opdater med rigtige tekster)
+const PD = [
+  {title:'Marielundhus — Kolding',   desc:'Tilbygning og renovering af villa i Kolding med ny glasudvidelse og forbedret forbindelse til haven.',    facts:[['Sted','Kolding'],['Type','Enfamiliehus'],['Rolle','Projektering & Udførelse']]},
+  {title:'Skovrød Hus — Birkerød',         desc:'Transformation og renovering af eksisterende hus med bevarelse af originale strukturer og materialer.',    facts:[['Type','Renovering'],['Rolle','Byggeledelse & Projektering']]},
+  {title:'Varbjerg Strand',     desc:'Nyopført sommerhus ved Varbjerg Strand med fokus på materialeærlighed og tilpasning til kystlandskabet.', facts:[['Type','Sommerhus'],['Rolle','Projektering & Materialevalg']]},
+  {title:'Bådehavnsgade',       desc:'Boligbebyggelse i Sydhavnen, København, med korkfacade og tæt forbindelse til havnemiljøet.',             facts:[['Sted','Sydhavnen, København'],['Type','Boliger'],['Rolle','Projektering']]},
+  {title:'Egevej',              desc:'Projekt i Middelfart med fokus på eksisterende strukturer og bæredygtige materialevalg.',                  facts:[['Sted','Middelfart'],['Rolle','Projektering & Rådgivning']]},
+  {title:'Midjysk Børnehave',   desc:'Ny børnehave i Midtjylland med stråtag og organisk planløsning tilpasset det åbne landskab.',            facts:[['Type','Institution'],['Rolle','Projektering & Bæredygtighed']]},
+  {title:'Danmarks Lærerforening', desc:'Ombygning og tilbygning til Danmarks Lærerforenings lokaler ved Vandkunsten i København.',            facts:[['Sted','Vandkunsten, København'],['Type','Erhverv'],['Rolle','Byggeledelse & Udførelse']]},
+  {title:'Kirkehøjgård — Horne',        desc:'Restaurering og renovering af historisk gård med bevarelse af bindingsværk, stråtag og originale materialer.', facts:[['Type','Kulturarv & Restaurering'],['Rolle','Projektering & Materialevalg']]},
+];
+function openProj(i) {
+  const p = PD[i];
+  document.getElementById('dhero').src = document.querySelectorAll('#plist li')[i].dataset.img;
+  document.getElementById('dtitle').textContent = p.title;
+  document.getElementById('ddesc').textContent = p.desc;
+  document.getElementById('dfacts').innerHTML = p.facts.map(([k,v]) =>
+    `<div class="fact"><span class="fk">${k}</span><span>${v}</span></div>`).join('');
+  document.getElementById('dgallery').innerHTML = '';
+  showInner('detail');
+}
+
+// Studio expand (dogmer/filosofi)
+function toggleExpand(trigger) {
+  const content = trigger.nextElementSibling;
+  const isOpen = content.classList.contains('open');
+  // Luk alle
+  document.querySelectorAll('.studio-expand-content').forEach(c => c.classList.remove('open'));
+  document.querySelectorAll('.studio-expand-trigger').forEach(t => t.classList.remove('open'));
+  // Åbn denne hvis den ikke var åben
+  if (!isOpen) {
+    content.classList.add('open');
+    trigger.classList.add('open');
+  }
+}
+
+// Journal
+let journalReady = false;
+function initJournal() {
+  if (journalReady) return;
+  journalReady = true;
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const grid = document.getElementById('journal-grid');
+  function addImages(files) {
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement('img');
+        img.src = e.target.result; img.alt='';
+        grid.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('dragover'); addImages(e.dataTransfer.files); });
+  fileInput.addEventListener('change', () => addImages(fileInput.files));
+}
+
+// Scroll reveal
+const io = new IntersectionObserver(ee => {
+  ee.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); });
+}, {threshold:.08});
+document.querySelectorAll('.fi').forEach(el => io.observe(el));
+</script>
+
+    <script>
+    (function(){
+      var studioImgs = [
+        "Billeder/Logo/Kopi%202.jpg",
+      ];
+      var idx = 0;
+      function rotatStudio(){
+        var el = document.getElementById('studioHeroImg');
+        if(!el) return;
+        idx = (idx+1) % studioImgs.length;
+        el.style.opacity='0';
+        setTimeout(function(){ el.src=studioImgs[idx]; el.style.opacity='1'; }, 800);
+      }
+      setInterval(rotatStudio, 5000);
+    })();
+    </script>
+</body>
+</html>
