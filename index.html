@@ -112,20 +112,17 @@
       .pg-grid{columns:1}
     }
 
-    /* DETALJE */  
-    #pg-detail{min-height:100vh}
-    .back{display:inline-block;padding:2rem 2.8rem 0;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);cursor:pointer;transition:color .2s}
+    /* DETALJE */
+    #pg-detail{min-height:100vh;padding:7.5rem 2.8rem 6rem}
+    .back{display:inline-block;padding:0 0 2rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);cursor:pointer;transition:color .2s}
     .back:hover{color:var(--black)}
-    .detail-hero{width:100%;height:85vh;overflow:hidden}
-    .detail-hero img{width:100%;height:100%;object-fit:cover}
-    .detail-gallery{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:2px}
-    .detail-gallery img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
-    .detail-gallery .wide{grid-column:span 2}
-    .detail-gallery .wide img{aspect-ratio:16/7}
-    .detail-body{max-width:1120px;margin:0 auto;padding:5rem 2.8rem 8rem;display:grid;grid-template-columns:1fr 1fr;gap:6rem}
-    .detail-body h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(1.7rem,2.8vw,3rem);line-height:1.18;margin-bottom:1.8rem}
-    .detail-body p{font-size:.87rem;line-height:1.92;color:#333;max-width:460px}
-    .facts h3{font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);margin-bottom:1.4rem}
+    .detail-header{max-width:700px;margin-bottom:2.5rem}
+    .detail-header h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(1.7rem,2.8vw,3rem);line-height:1.18;margin-bottom:1.2rem}
+    .detail-header p{font-size:.87rem;line-height:1.92;color:#333}
+    .detail-gallery{columns:3;column-gap:8px;margin-bottom:3rem}
+    .detail-gallery img{width:100%;height:auto;display:block;margin-bottom:8px;break-inside:avoid}
+    .detail-facts{max-width:460px;padding-top:2rem;border-top:1px solid var(--rule)}
+    .detail-facts h3{font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);margin-bottom:1.4rem}
     .fact{display:grid;grid-template-columns:110px 1fr;padding:.78rem 0;border-top:1px solid var(--rule);font-size:.83rem}
     .fact:last-child{border-bottom:1px solid var(--rule)}
     .fk{color:var(--grey)}
@@ -244,9 +241,8 @@
       #pg-projects{grid-template-columns:1fr}
       .pp-col{display:none}
       .pl-col{padding:7rem 1.5rem 4rem}
-      .detail-body{grid-template-columns:1fr;gap:3rem;padding:3rem 1.5rem 5rem}
-      .detail-gallery{grid-template-columns:1fr}
-      .detail-gallery .wide{grid-column:span 1}
+      #pg-detail{padding:7rem 1.5rem 5rem}
+      .detail-gallery{columns:1}
       .studio-section-inner{grid-template-columns:1fr;gap:2rem;padding:3.5rem 1.5rem}
       .studio-anchors{padding:1.5rem;gap:1.5rem;flex-wrap:wrap}
       .studio-contact-grid{grid-template-columns:1fr;gap:2.5rem}
@@ -338,12 +334,9 @@
   <!-- DETALJE -->
   <div id="pg-detail" style="display:none;">
     <span class="back" onclick="showInner('projects')">← Alle projekter</span>
-    <div class="detail-hero"><img id="dhero" src="" alt=""/></div>
+    <div class="detail-header fi"><h1 id="dtitle"></h1><p id="ddesc"></p></div>
     <div class="detail-gallery" id="dgallery"></div>
-    <div class="detail-body">
-      <div class="fi"><h1 id="dtitle"></h1><p id="ddesc"></p></div>
-      <div class="facts fi"><h3>Fakta</h3><div id="dfacts"></div></div>
-    </div>
+    <div class="detail-facts fi"><h3>Fakta</h3><div id="dfacts"></div></div>
   </div>
 
   <!-- TEGNESTUEN -->
@@ -541,25 +534,24 @@ document.querySelectorAll('#plist li').forEach(li => {
   li.addEventListener('click', () => openProj(parseInt(li.dataset.i)));
 });
 
-// Project data (placeholder beskrivelser — opdater med rigtige tekster)
 const PD = [
-  {title:'Marielundhus — Kolding',   desc:'Tilbygning og renovering af villa i Kolding med ny glasudvidelse og forbedret forbindelse til haven.',    facts:[['Sted','Kolding'],['Type','Enfamiliehus'],['Rolle','Projektering & Udførelse']]},
-  {title:'Skovrød Hus — Birkerød',         desc:'Transformation og renovering af eksisterende hus med bevarelse af originale strukturer og materialer.',    facts:[['Type','Renovering'],['Rolle','Byggeledelse & Projektering']]},
-  {title:'Varbjerg Strand',     desc:'Nyopført sommerhus ved Varbjerg Strand med fokus på materialeærlighed og tilpasning til kystlandskabet.', facts:[['Type','Sommerhus'],['Rolle','Projektering & Materialevalg']]},
-  {title:'Bådehavnsgade',       desc:'Boligbebyggelse i Sydhavnen, København, med korkfacade og tæt forbindelse til havnemiljøet.',             facts:[['Sted','Sydhavnen, København'],['Type','Boliger'],['Rolle','Projektering']]},
-  {title:'Egevej',              desc:'Projekt i Middelfart med fokus på eksisterende strukturer og bæredygtige materialevalg.',                  facts:[['Sted','Middelfart'],['Rolle','Projektering & Rådgivning']]},
-  {title:'Midjysk Børnehave',   desc:'Ny børnehave i Midtjylland med stråtag og organisk planløsning tilpasset det åbne landskab.',            facts:[['Type','Institution'],['Rolle','Projektering & Bæredygtighed']]},
-  {title:'Danmarks Lærerforening', desc:'Ombygning og tilbygning til Danmarks Lærerforenings lokaler ved Vandkunsten i København.',            facts:[['Sted','Vandkunsten, København'],['Type','Erhverv'],['Rolle','Byggeledelse & Udførelse']]},
-  {title:'Kirkehøjgård — Horne',        desc:'Restaurering og renovering af historisk gård med bevarelse af bindingsværk, stråtag og originale materialer.', facts:[['Type','Kulturarv & Restaurering'],['Rolle','Projektering & Materialevalg']]},
+  {title:'Marielundhus — Kolding',desc:'Tilbygning og renovering af villa i Kolding med ny glasudvidelse og forbedret forbindelse til haven.',thumb:"Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_3450.jpg",imgs:["Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_3450.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_7227.jpeg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_8037.jpeg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_8038.jpeg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_8279.jpeg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_8282.jpeg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_8865_%281%29.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_20210319_092948_Bokeh.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_20210319_093009_Bokeh.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/IMG_20210428_150705.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/att.N7j39UplePJdyJa-grVCRuXk8b2BTDDWTxUKDHrzBoY.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/att.bUHGYGeu9lgx95vLV3lJ7soYRUBKluNuuhvjivNUI58.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/Kolding%20-%20Samlet%20tegningss%C3%A6t_Page_1.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/Kolding%20-%20Samlet%20tegningss%C3%A6t_Page_2.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/Kolding%20-%20Samlet%20tegningss%C3%A6t_Page_3123.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/Kolding%20-%20Samlet%20tegningss%C3%A6t_Page_4.jpg","Billeder/01%20Hus%20Marielundskov%2C%20Kolding/Kolding%20-%20Samlet%20tegningss%C3%A6t_Page_5.jpg"],facts:[["Sted","Kolding"],["Type","Enfamiliehus"],["Rolle","Projektering & Udførelse"]]},
+  {title:'Skovrød Hus — Birkerød',desc:'Transformation og renovering af eksisterende hus med bevarelse af originale strukturer og materialer.',thumb:"Billeder/02%20Skovr%C3%B8d%20hus/Sk%C3%A6rmbillede%202026-05-19%20102447.png",imgs:["Billeder/02%20Skovr%C3%B8d%20hus/Sk%C3%A6rmbillede%202026-05-19%20102447.png","Billeder/02%20Skovr%C3%B8d%20hus/Skovr%C3%B8d%20-%20Samlet%20tegningss%C3%A6t_Page_1.jpg","Billeder/02%20Skovr%C3%B8d%20hus/Skovr%C3%B8d%20-%20Samlet%20tegningss%C3%A6t_Page_2.jpg","Billeder/02%20Skovr%C3%B8d%20hus/Skovr%C3%B8d%20-%20Samlet%20tegningss%C3%A6t_Page_3.jpg","Billeder/02%20Skovr%C3%B8d%20hus/Skovr%C3%B8d%20-%20Samlet%20tegningss%C3%A6t_Page_4.jpg","Billeder/02%20Skovr%C3%B8d%20hus/Skovr%C3%B8d%20-%20Samlet%20tegningss%C3%A6t_Page_5.jpg","Billeder/02%20Skovr%C3%B8d%20hus/Skovr%C3%B8d%20-%20Samlet%20tegningss%C3%A6t_Page_6.jpg","Billeder/02%20Skovr%C3%B8d%20hus/Skovr%C3%B8d%20-%20Samlet%20tegningss%C3%A6t_Page_7.jpg"],facts:[["Type","Renovering"],["Rolle","Byggeledelse & Projektering"]]},
+  {title:'Varbjerg Strand',desc:'Nyopført sommerhus ved Varbjerg Strand med fokus på materialeærlighed og tilpasning til kystlandskabet.',thumb:"Billeder/03%20Varbjerg%20Strand/Skala%20billede%20rendering.png",imgs:["Billeder/03%20Varbjerg%20Strand/Skala%20billede%20rendering.png","Billeder/03%20Varbjerg%20Strand/%C3%85vej%2012%2C%20Varbjerg_Samlet%20tegningss%C3%A6t_Page_02.jpg","Billeder/03%20Varbjerg%20Strand/%C3%85vej%2012%2C%20Varbjerg_Samlet%20tegningss%C3%A6t_Page_03.jpg","Billeder/03%20Varbjerg%20Strand/%C3%85vej%2012%2C%20Varbjerg_Samlet%20tegningss%C3%A6t_Page_04.jpg","Billeder/03%20Varbjerg%20Strand/%C3%85vej%2012%2C%20Varbjerg_Samlet%20tegningss%C3%A6t_Page_05.jpg","Billeder/03%20Varbjerg%20Strand/%C3%85vej%2012%2C%20Varbjerg_Samlet%20tegningss%C3%A6t_Page_06.jpg","Billeder/03%20Varbjerg%20Strand/%C3%85vej%2012%2C%20Varbjerg_Samlet%20tegningss%C3%A6t_Page_08.jpg","Billeder/03%20Varbjerg%20Strand/%C3%85vej%2012%2C%20Varbjerg_Samlet%20tegningss%C3%A6t_Page_10.jpg"],facts:[["Type","Sommerhus"],["Rolle","Projektering & Materialevalg"]]},
+  {title:'Bådehavnsgade',desc:'Boligbebyggelse i Sydhavnen, København, med korkfacade og tæt forbindelse til havnemiljøet.',thumb:"Billeder/04%20B%C3%A5dehavnsgade%2C%20Sydhavnen%20K%C3%B8benhavn/NK-TOAST-HOUSE1.jpg",imgs:["Billeder/04%20B%C3%A5dehavnsgade%2C%20Sydhavnen%20K%C3%B8benhavn/NK-TOAST-HOUSE1.jpg","Billeder/04%20B%C3%A5dehavnsgade%2C%20Sydhavnen%20K%C3%B8benhavn/NK-TOAST-HOUSE1-17.jpg","Billeder/04%20B%C3%A5dehavnsgade%2C%20Sydhavnen%20K%C3%B8benhavn/620880443_18063819308641060_7672295599749446323_n.jpg","Billeder/04%20B%C3%A5dehavnsgade%2C%20Sydhavnen%20K%C3%B8benhavn/622925140_18038099051756437_982733686573007978_n.jpg","Billeder/04%20B%C3%A5dehavnsgade%2C%20Sydhavnen%20K%C3%B8benhavn/IMG_20210226_163727Straight.jpg","Billeder/04%20B%C3%A5dehavnsgade%2C%20Sydhavnen%20K%C3%B8benhavn/A-7-0001%20-%20Structural%20Framing_Page_1.jpg","Billeder/04%20B%C3%A5dehavnsgade%2C%20Sydhavnen%20K%C3%B8benhavn/A-7-0001%20-%20Structural%20Framing_Page_2.jpg","Billeder/04%20B%C3%A5dehavnsgade%2C%20Sydhavnen%20K%C3%B8benhavn/A-7-0001%20-%20Structural%20Framing_Page_3.jpg"],facts:[["Sted","Sydhavnen, København"],["Type","Boliger"],["Rolle","Projektering"]]},
+  {title:'Egevej',desc:'Projekt i Middelfart med fokus på eksisterende strukturer og bæredygtige materialevalg.',thumb:"Billeder/05%20Egevej%2C%20Middelfart/Gemini_Generated_Image_afc6zafc6zafc6za.png",imgs:["Billeder/05%20Egevej%2C%20Middelfart/Gemini_Generated_Image_afc6zafc6zafc6za.png","Billeder/05%20Egevej%2C%20Middelfart/Egevej%20-%2001.jpg","Billeder/05%20Egevej%2C%20Middelfart/Egevej%20-%2002.jpg","Billeder/05%20Egevej%2C%20Middelfart/Egevej%20-%2003.jpg","Billeder/05%20Egevej%2C%20Middelfart/Egevej%20-%2004.jpg","Billeder/05%20Egevej%2C%20Middelfart/Egevej%20-%2005.jpg","Billeder/05%20Egevej%2C%20Middelfart/Egevej%20-%2006.jpg","Billeder/05%20Egevej%2C%20Middelfart/Egevej%20-%2007.jpg","Billeder/05%20Egevej%2C%20Middelfart/Egevej%20-%2008.jpg","Billeder/05%20Egevej%2C%20Middelfart/Egevej%20-%2009.jpg"],facts:[["Sted","Middelfart"],["Rolle","Projektering & Rådgivning"]]},
+  {title:'Midjysk Børnehave',desc:'Ny børnehave i Midtjylland med stråtag og organisk planløsning tilpasset det åbne landskab.',thumb:"Billeder/06%20Midjysk%20b%C3%B8rnehave/Billede%20hovedindgang%20b%C3%B8rnehave%20vestkysten.png",imgs:["Billeder/06%20Midjysk%20b%C3%B8rnehave/Billede%20hovedindgang%20b%C3%B8rnehave%20vestkysten.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Bel%C3%A6gning%202.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Bel%C3%A6gning%20ved%20hovedindgangen.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Bel%C3%A6gning.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Gemini_Generated_Image_1rh9da1rh9da1rh9.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Hedelandskab%20.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Uhre%20-%2001.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Uhre%20-%2002.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Uhre%20-%2003.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Uhre%20-%2004.jpg","Billeder/06%20Midjysk%20b%C3%B8rnehave/Uhre%20-%2005.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Uhre%20-%2006.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Uhre%20-%2007.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Uhre%20-%2008.png","Billeder/06%20Midjysk%20b%C3%B8rnehave/Uhre%20-%2009.png"],facts:[["Type","Institution"],["Rolle","Projektering & Bæredygtighed"]]},
+  {title:'Danmarks Lærerforening',desc:'Ombygning og tilbygning til Danmarks Lærerforenings lokaler ved Vandkunsten i København.',thumb:"Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Danmarks-Laererforening_spejling-i-indre-gaard.jpg",imgs:["Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Danmarks-Laererforening_spejling-i-indre-gaard.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Danmarks-Laererforening_facade-over-x-1152x1536.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Danmarks-Laererforening_glasfacade-tilbygning-1536x1152.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Danmarks-Laererforening_konferencerum-2.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Danmarks-Laererforening_moederum-parterre-1536x1152.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Danmarks-Laererforening_trapperum-langs-glasfacade.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/50801784_396376837595896_6096593862061457408_n.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/51457158_2125329194181792_4876685552130195456_n.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/51675478_365381220947752_1507844884550123520_n.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/51734072_1279258388882107_1843008996865212416_n.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/DLF%20-%20St%C3%A5l.png","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/DLF%20-%20facade.png","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Farvergade-15-G%C3%A5segade-2-Vandkunsten-12-L%C3%B8ngangsstr%C3%A6de-16-8.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Farvergade-15-G%C3%A5segade-2-Vandkunsten-12-L%C3%B8ngangsstr%C3%A6de-16-9.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Paul-Fischer-Parti-fra-Vandkunsten-i-K%C3%B8benhavn-1910-public-domain.jpg","Billeder/07%20Danmarks%20L%C3%A6rerforening%20Vandkunsten/Vandkunsten%2012%20test.jpg"],facts:[["Sted","Vandkunsten, København"],["Type","Erhverv"],["Rolle","Byggeledelse & Udførelse"]]},
+  {title:'Kirkehøjgård — Horne',desc:'Restaurering og renovering af historisk gård med bevarelse af bindingsværk, stråtag og originale materialer.',thumb:"Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/2022-07-21%2015.32.22.jpg",imgs:["Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/2022-07-21%2015.32.22.jpg","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/2022-03-24%2012.29.12.jpg","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/2022-03-24%2012.29.20.jpg","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/2023-03-11%2014.36.26.jpg","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/301700024_5264720893632887_5093791616035187862_n.jpg","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/SLKS%20-%208.jpg","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/SLKS%20-%20Aksonometri.jpg","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/Sk%C3%A6rmbillede%202026-05-18%20102245.png","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/Sk%C3%A6rmbillede%202026-05-18%20102419.png","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/Sk%C3%A6rmbillede%202026-05-18%20102630.png","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/Sk%C3%A6rmbillede%202026-05-19%20085421.png","Billeder/08%20Kirkeh%C3%B8jg%C3%A5rd/k1.JPG"],facts:[["Type","Kulturarv & Restaurering"],["Rolle","Projektering & Materialevalg"]]},
 ];
 function openProj(i) {
   const p = PD[i];
-  document.getElementById('dhero').src = document.querySelectorAll('#plist li')[i].dataset.img;
   document.getElementById('dtitle').textContent = p.title;
   document.getElementById('ddesc').textContent = p.desc;
   document.getElementById('dfacts').innerHTML = p.facts.map(([k,v]) =>
     `<div class="fact"><span class="fk">${k}</span><span>${v}</span></div>`).join('');
-  document.getElementById('dgallery').innerHTML = '';
+  document.getElementById('dgallery').innerHTML = p.imgs.map(src =>
+    `<img src="${src}" alt="" loading="lazy"/>`).join('');
   showInner('detail');
 }
 
